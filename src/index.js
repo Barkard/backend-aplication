@@ -1,29 +1,38 @@
-import express from 'express';
-import { PORT } from './config.js';
-import userRoutes from './routes/users.routes.js';
-import booksRoutes from './routes/books.routes.js';
-import categoryBookRoutes from './routes/categoryBook.routes.js';
-import loansRoutes from './routes/loans.routes.js';
-import roleRoutes from './routes/role.routes.js';
-import lotRoutes from './routes/lot.routes.js';
-import returnRoutes from './routes/return.routes.js';
-import authRoutes from './routes/auth.routes.js';
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+
+import usersRouter from './routes/users.routes.js'
+import rolesRouter from './routes/roles.routes.js'
+import booksRouter from './routes/books.routes.js'
+import categoryBooksRouter from './routes/categoryBooks.routes.js'
+import loansRouter from './routes/loans.routes.js'
+import reservationsRouter from './routes/reservations.routes.js'
+import returnRouter from './routes/return.routes.js'
+import dashboardRouter from './routes/dashboard.routes.js'
+import userProfileRouter from './routes/userProfile.routes.js'
 
 const app = express();
 
-// Middleware para procesar JSON
-app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    methods: [GET, POST, PUT, DELETE],
+    credentials: true,
+}))
 
-// Rutas
-app.use('/api', userRoutes);
-app.use('/api', booksRoutes);
-app.use('/api', categoryBookRoutes);
-app.use('/api', loansRoutes);
-app.use('/api', roleRoutes);
-app.use('/api', returnRoutes);
-app.use('/api', authRoutes);
+app.use(express.json())
+app.use(express.urlencoded({ extended: true}))
 
-// Servidor
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.use('/api/users', usersRouter)
+app.use('/api/roles', rolesRouter)
+app.use('/api/books', booksRouter)
+app.use('/api/categoryBooks', categoryBooksRouter)
+app.use('/api/loans', loansRouter)
+app.use('/api/reservations', reservationsRouter)
+app.use('/api/return', returnRouter)
+app.use('/api/dashboard', dashboardRouter)
+app.use('/api/userProfile', userProfileRouter)
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => console.log('Server running at '+PORT))

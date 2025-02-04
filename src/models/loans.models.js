@@ -1,42 +1,56 @@
-import { pool } from "../database/db.js"; // Conexión con la base de datos
+import { query } from 'express'
+import { pool } from '../database/db.js'
 
-// Obtener todos los préstamos
 const getAllLoans = async () => {
-  const result = await pool.query("SELECT * FROM loans");
-  return result.rows;
-};
+    const query = `
+        SELECT id_loans, Uid_users, date_loans, status, created_at, updated_at
+        FROM loans;
+    `
+    const { rows } = await pool.query(query)
+    return rows
+}
 
-// Obtener un préstamo por ID
 const getLoanById = async (id) => {
-  const result = await pool.query("SELECT * FROM loans WHERE id_loan = $1", [id]);
-  return result.rows[0];
-};
+    const query = `
+        SELECT id_loans, Uid_users, date_loans, status, created_at, updated_at
+        FROM loans
+        WHERE id_loans = $1;
+    `
+    const { rows } = await pool.query(query, [id])
+    return rows[0]
+}
 
-// Crear un nuevo préstamo
-const createLoan = async (loan) => {
-  const { id_user, id_book, loan_date, return_date } = loan;
-  const result = await pool.query(
-    `INSERT INTO loans (id_user, id_book, loan_date, return_date) 
-    VALUES ($1, $2, $3, $4) RETURNING *`,
-    [id_user, id_book, loan_date, return_date]
-  );
-  return result.rows[0];
-};
+const addLoan = async ({ Uid_users, date_loans, status }) => {
+    const query = `
+        INSERT INTO loans (Uid_users, date_loans, status)
+        VALUES ($1, $2, $3)
+        RETURNING *;
+    `
+    const values = [Uid_users, date_loans, status]
+    const { rows } = await pool.query(query, values)
+    return rows[0]
+}
 
-// Actualizar un préstamo
-const updateLoan = async (id, loan) => {
-  const { id_user, id_book, loan_date, return_date } = loan;
-  const result = await pool.query(
-    `UPDATE loans SET id_user = $1, id_book = $2, loan_date = $3, return_date = $4 
-    WHERE id_loan = $5 RETURNING *`,
-    [id_user, id_book, loan_date, return_date, id]
-  );
-  return result.rows[0];
-};
-
-// Eliminar un préstamo
 const deleteLoan = async (id) => {
-  await pool.query("DELETE FROM loans WHERE id_loan = $1", [id]);
-};
+    const query = `
+        DELETE FROM loans
+        WHERE id_loans = $1
+        RETURNING *;
+    `
+    const { rows } = await pool.query(query, [id])
+    return rows[0]
+}
 
-export { getAllLoans, getLoanById, createLoan, updateLoan, deleteLoan };
+const updateLoan = async (id, { Uid_users, date_loans, status }) => {
+    const query = `
+        UPDATE loans
+        SET Uid_users = $1, date_loans = $2, status = $3
+        WHERE id_loans = $4
+        RETURNING *;
+    `
+    const values = [Uid_users, date_loans, status, id]
+    const { rows } = await pool.query(query, values)
+    return rows[0]
+}
+
+export const loansModel = { getAllLoans, getLoanById, addLoan, deleteLoan, updateLoan }

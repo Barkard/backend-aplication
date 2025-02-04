@@ -1,21 +1,12 @@
-import { Router } from 'express';
-import { getBooks, getBook, createNewBook, updateBookById, deleteBookById } from '../controllers/books.controllers.js';
+import { Router } from 'express'
+import { booksControllers } from '../controllers/books.controllers.js'
 
-const router = Router();
+const router = Router()
 
-// Get all books
-router.get('/books', getBooks);
+router.get('/', booksControllers.getAllBooks)
+router.get('/getBooksByCategory/:id_category_book', booksControllers.getBooksByCategory)
+router.post('/', booksControllers.addBook)
+router.put('/:id', booksControllers.updateBook)
+router.delete('/:id', booksControllers.deleteBook)
 
-// Get a book by its ID
-router.get('/books/:id', getBook);
-
-// Create a new book
-router.post('/books', createNewBook);
-
-// Update a book by its ID
-router.put('/books/:id', updateBookById);
-
-// Delete a book by its ID
-router.delete('/books/:id', deleteBookById);
-
-export default router;
+export default router

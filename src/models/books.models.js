@@ -1,65 +1,56 @@
-import { pool } from '../database/db.js';
+import { query } from 'express'
+import { pool } from '../database/db.js'
 
-export const getAllBooks = async () => {
-    const query = 'SELECT * FROM books'; // Cambiar "books" por el nombre real de la tabla en tu DB
-    try {
-        const result = await pool.query(query);
-        return result.rows;
-    } catch (error) {
-        console.error("Error fetching books:", error);
-        throw error;
-    }
-};
-
-export const getBookById = async (id) => {
-    const query = 'SELECT * FROM books WHERE id_book = $1';
-    try {
-        const result = await pool.query(query, [id]);
-        return result.rows[0];
-    } catch (error) {
-        console.error("Error fetching book by ID:", error);
-        throw error;
-    }
-};
-
-export const createBook = async (book) => {
-    const { id_category_book, id_loans, id_lot, cota_book, name, description, editorial, autor, available_quantity } = book;
+const getAllBooks = async () => {
     const query = `
-        INSERT INTO books (id_category_book, id_loans, id_lot, cota_book, name, description, editorial, autor, available_quantity, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-        RETURNING *`;
-    try {
-        const result = await pool.query(query, [id_category_book, id_loans, id_lot, cota_book, name, description, editorial, autor, available_quantity]);
-        return result.rows[0];
-    } catch (error) {
-        console.error("Error creating book:", error);
-        throw error;
-    }
-};
+        SELECT id_book, id_category_book, id_loans, cota_book, name, description, editorial, autor
+        FROM books;
+    `
+    const { rows } = await pool.query(query)
+    return rows
+}
 
-export const updateBook = async (id, book) => {
-    const { id_category_book, id_loans, id_lot, cota_book, name, description, editorial, autor, available_quantity } = book;
+const getBooksByCategory = async (id_category_book) => {
+    const query = `
+        SELECT id_book, id_category_book, id_loans, cota_book, name, description, editorial, autor
+        FROM books
+        WHERE id_category_book = $1;
+    `
+    const { rows } = await pool.query(query, [id_category_book])
+    return rows
+}
+
+const addBook = async ({ id_category_book, cota_book, name, description, editorial, autor }) => {
+    const query = `
+        INSERT INTO books (id_category_book, id_loans, cota_book, name, description, editorial, autor)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *;
+    `
+    const values = [id_category_book, id_loans, cota_book, name, description, editorial, autor]
+    const { rows } = await pool.query(query, values)
+    return rows[0]
+}
+
+const deleteBook = async (id) => {
+    const query = `
+        DELETE FROM books
+        WHERE id_book = $1
+        RETURNING *;
+    `
+    const { rows } = await pool.query(query, [id])
+    return rows[0]
+}
+
+const updateBook = async (id, { id_category_book, id_loans, cota_book, name, description, editorial, autor }) => {
     const query = `
         UPDATE books
-        SET id_category_book = $1, id_loans = $2, id_lot = $3, cota_book = $4, name = $5, description = $6, editorial = $7, autor = $8, available_quantity = $9, updated_at = NOW()
-        WHERE id_book = $10
-        RETURNING *`;
-    try {
-        const result = await pool.query(query, [id_category_book, id_loans, id_lot, cota_book, name, description, editorial, autor, available_quantity, id]);
-        return result.rows[0];
-    } catch (error) {
-        console.error("Error updating book:", error);
-        throw error;
-    }
-};
+        SET id_category_book = $1, id_loans = $2, cota_book = $3, name = $4, description = $5, editorial = $6, autor = $7
+        WHERE id_book = $8
+        RETURNING *;
+    `
+    const values = [id_category_book, id_loans, cota_book, name, description, editorial, autor, id]
+    const { rows } = await pool.query(query, values)
+    return rows[0]
+}
 
-export const deleteBook = async (id) => {
-    const query = 'DELETE FROM books WHERE id_book = $1 RETURNING *';
-    try {
-        const result = await pool.query(query, [id]);
-        return result.rows[0];
-    } catch (error) {
-        console.error("Error deleting book:", error);
-        throw error;
-    }
-};
+export const booksModel = { getAllBooks, getBooksByCategory, addBook, deleteBook, updateBook }
